@@ -1,0 +1,301 @@
+---
+title: "Individual analysis pro players HRV"
+output: html_notebook
+---
+
+```{r}
+## load data and packages
+rm(list=ls())
+require(nonlinearTseries)
+require(tseriesChaos)
+require(crqa)
+require(Hmisc)
+require(grid)
+require(ggplot2)
+library(viridis)
+library(gridExtra)
+library(dplyr)
+
+setwd("/Users/ymkeverduyn/Desktop/TILBURG UNIVERSITY/YEAR 1 SEM 2/COMPLEX SYSTEMS/Group project/HRV/pros/match_10")
+
+```
+
+```{r}
+## temporal dynamics and change ##
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file=file_name)
+  ## temporal dynamics and change ##
+  y_limits <- c(0, 16)
+  TS <- ts(player_data$RMSSD)
+  ts.plot(ylim=y_limits, player_data$RMSSD, main = paste("Original RMSSD Time Series - Player", i))
+}
+
+
+#all in one plot 
+# Initialize an empty data frame to store all player data
+all_players_data <- data.frame()
+
+# Read data for each player, append to the data frame
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file = file_name)
+  player_data$Player <- paste("Player", i)  # Add player identifier
+  player_data$Time <- 1:nrow(player_data)
+  all_players_data <- rbind(all_players_data, player_data)  # Combine data
+}
+
+ggplot(all_players_data, aes(x = Time, y = RMSSD, color = Player)) +
+  geom_line() +
+  scale_color_viridis_d() +
+  labs(title = "Original RMSSD Time Series - All Pro players", x = "Time", y = "RMSSD") +
+  theme_minimal()
+```
+
+```{r}
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file=file_name)
+  # TS plot of discrete differences
+  ts.plot(diff(player_data$RMSSD), main = paste("Discrete Differences - Player", i))}
+
+#All Pro Players
+# Initialize an empty data frame to store all player data
+all_players_data <- data.frame()
+
+# Read data for each player, calculate differences, and append to the data frame
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file = file_name)
+  # Calculate discrete differences of RMSSD
+  diff_data <- diff(player_data$RMSSD)
+  # Prepare data for plotting
+  player_diff_data <- data.frame(Time = 1:length(diff_data), DiffRMSSD = diff_data, Player = paste("Player", i))
+  all_players_data <- rbind(all_players_data, player_diff_data)  # Combine data
+}
+
+#all in one plot 
+# Plotting with ggplot2 and viridis
+ggplot(all_players_data, aes(x = Time, y = DiffRMSSD, color = Player)) +
+  geom_line() +
+  scale_color_viridis_d() +  # Use discrete viridis color scale
+  labs(title = "Discrete Differences of RMSSD - All Pro Players", x = "Time", y = "Difference in RMSSD") +
+  theme_minimal()
+```
+
+```{r}
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file=file_name)
+  # Density plot of discrete differences
+  lhd <- density(diff(player_data$RMSSD))
+  plot(lhd, main = paste("Density of Discrete Differences - Player", i))}
+
+#all combined
+# Initialize an empty list to store density plots
+density_plots <- list()
+
+# Read data for each player, calculate density, and create plots
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file = file_name)
+  # Calculate discrete differences of RMSSD
+  diff_data <- diff(player_data$RMSSD)
+  # Calculate density of the differences
+  lhd <- density(diff_data)
+  # Convert density object to data frame
+  density_df <- data.frame(x = lhd$x, y = lhd$y)
+  density_df$Player <- paste("Player", i)
+  # Store the density data frame in the list
+  density_plots[[i + 1]] <- density_df
+}
+
+# Combine all density data frames
+all_density_data <- do.call(rbind, density_plots)
+
+# Plotting with ggplot2
+ggplot(all_density_data, aes(x = x, y = y, color = Player)) +
+  geom_line() +
+  scale_color_viridis_d() +  # Use discrete viridis color scale
+  labs(title = "Density of Discrete Differences in RMSSD - All Pro Players", x = "Difference in RMSSD", y = "Density") +
+  theme_minimal()
+```
+
+```{r}
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file=file_name)
+  #Attractor dynamics 
+  # Calculate a lead and a lag and estimate velocity
+  player_data$rmssd_lag1 <- Lag(player_data$RMSSD, 1)
+  player_data$rmssd_lead1 <- Lag(player_data$RMSSD, -1)
+  player_data$rmssd_vel <- (player_data$rmssd_lead1 - player_data$rmssd_lag1) / 2
+
+  # Plot change in time series
+  plot(player_data$rmssd_vel, type='l', xlab = "Time", ylab = "Change in RMSSD",
+         main = paste("Change in RMSSD Time Series - Player", i))
+}
+#All Pro Players
+# Initialize an empty data frame to store all player data
+all_players_data <- data.frame()
+
+# Read data for each player, calculate velocity, and append to the data frame
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file = file_name)
+  
+  # Calculate lead and lag for RMSSD
+  player_data <- player_data %>%
+    mutate(
+      rmssd_lag1 = lag(RMSSD, 1),
+      rmssd_lead1 = lead(RMSSD, 1),
+      rmssd_vel = (rmssd_lead1 - rmssd_lag1) / 2
+    )
+  
+  # Prepare data for plotting
+  player_data$Player <- paste("Player", i)  # Add player identifier
+  player_data$Time <- 1:nrow(player_data)  # Time or sequence index
+  all_players_data <- rbind(all_players_data, player_data)  # Combine data
+}
+
+# Filtering out NA values which may have been introduced by lead/lag calculation
+all_players_data <- na.omit(all_players_data)
+
+# Plotting with ggplot2
+ggplot(all_players_data, aes(x = Time, y = rmssd_vel, color = Player)) +
+  geom_line() +
+  scale_color_viridis_d() + 
+  labs(title = "Change in RMSSD Time Series - All Pro Players", x = "Time", y = "Velocity of RMSSD Change") +
+  theme_minimal()
+```
+
+```{r}
+#Attractor dynamics through regression 
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file=file_name)
+ #Attractor dynamics 
+  # Calculate a lead and a lag and estimate velocity
+  player_data$rmssd_lag1 <- Lag(player_data$RMSSD, 1)
+  player_data$rmssd_lead1 <- Lag(player_data$RMSSD, -1)
+  player_data$rmssd_vel <- (player_data$rmssd_lead1 - player_data$rmssd_lag1) / 2
+
+  # Plot change in time series
+  plot(player_data$RMSSD, player_data$rmssd_vel, xlab = 'RMSSD', ylab='Change in RMSSD')
+}
+#All Pro Players
+# Initialize an empty data frame to store all player data
+all_players_data <- data.frame()
+
+# Read data for each player, calculate velocity, and append to the data frame
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file = file_name)
+  
+  # Calculate lead and lag for RMSSD
+  player_data <- player_data %>%
+    mutate(
+      rmssd_lag1 = lag(RMSSD, 1),
+      rmssd_lead1 = lead(RMSSD, 1),
+      rmssd_vel = (rmssd_lead1 - rmssd_lag1) / 2
+    )
+
+  # Prepare data for plotting
+  player_data$Player <- paste("Player", i)  # Add player identifier
+  all_players_data <- rbind(all_players_data, player_data)  # Combine data
+}
+
+# Filtering out NA values which may have been introduced by lead/lag calculation
+all_players_data <- na.omit(all_players_data)
+
+# Plotting with ggplot2
+ggplot(all_players_data, aes(x = RMSSD, y = rmssd_vel, color = Player)) +
+  geom_point(alpha=0.5) +  # using points with slight transparency
+  scale_color_viridis_d() +  
+  labs(title = "Attractor Dynamics of RMSSD Change - All Pro Players", x = "RMSSD", y = "Velocity of RMSSD Change") +
+  theme_minimal()
+```
+
+```{r}
+models <- list()
+summaries <- list()
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file=file_name)
+  #Attractor dynamics 
+  # Calculate a lead and a lag and estimate velocity
+  player_data$rmssd_lag1 <- Lag(player_data$RMSSD, 1)
+  player_data$rmssd_lead1 <- Lag(player_data$RMSSD, -1)
+  player_data$rmssd_vel <- (player_data$rmssd_lead1 - player_data$rmssd_lag1) / 2
+  
+  # Fit the model
+  mod <- lm(rmssd_vel ~ RMSSD, data = player_data)
+  
+  # Store the model and summary
+  models[[i + 1]] <- mod
+  summaries[[i + 1]] <- summary(mod)
+}
+# Print all summaries
+for (j in 1:length(summaries)) {
+  cat(paste("Summary for Player", j - 1, ":\n"))
+  print(summaries[[j]])
+  cat("\n\n")  # Adds extra newlines for better separation
+  
+## No significant results, so no signs of attractor or repellors or other topological features
+}
+```
+
+```{r}
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file=file_name)
+  #Attractor dynamics 
+  # Calculate a lead and a lag and estimate velocity
+  player_data$rmssd_lag1 <- Lag(player_data$RMSSD, 1)
+  player_data$rmssd_lead1 <- Lag(player_data$RMSSD, -1)
+  player_data$rmssd_vel <- (player_data$rmssd_lead1 - player_data$rmssd_lag1) / 2
+  
+  # Vector field plot with density
+  p <- ggplot(data=player_data, aes(x=window, y=RMSSD)) +
+    geom_segment(aes(xend=window, yend=RMSSD + rmssd_vel), arrow=arrow(length=unit(.2, "cm"))) +
+        stat_density2d(aes(colour=after_stat(level))) +
+        labs(title = paste("Vector Density Plot - Player", i), x= "Time Window", y = "RMSSD")
+  print(p)
+}
+#All Pro Players
+# Initialize an empty data frame to store all player data
+all_players_data <- data.frame()
+
+# Read data for each player, calculate velocity, and append to the data frame
+for (i in 0:4) {
+  file_name <- paste("match_10_player_", i, ".csv", sep = "")
+  player_data <- read.csv(file = file_name)
+  
+  # Calculate lead and lag for RMSSD
+  player_data <- player_data %>%
+    mutate(
+      rmssd_lag1 = lag(RMSSD, 1),
+      rmssd_lead1 = lead(RMSSD, 1),
+      rmssd_vel = (rmssd_lead1 - rmssd_lag1) / 2,
+      Player = paste("Player", i)
+    )
+  
+  all_players_data <- rbind(all_players_data, player_data)  # Combine data
+}
+
+# Filtering out NA values which may have been introduced by lead/lag calculation
+all_players_data <- na.omit(all_players_data)
+
+# Plotting with ggplot2
+ggplot(all_players_data, aes(x = window, y = RMSSD)) +
+  geom_segment(aes(xend = window, yend = RMSSD + rmssd_vel, color = Player), arrow = arrow(length = unit(.2, "cm"))) +
+  stat_density2d(aes(fill = after_stat(level)), geom = "polygon", alpha = 0.3) +
+  scale_color_viridis_d() +
+  scale_fill_viridis_c() +
+  labs(title = "Vector Density Plot - All Pro Players", x = "Time Window", y = "RMSSD") +
+  theme_minimal() +
+  theme(legend.position = "right")
+```
+
+ 
+

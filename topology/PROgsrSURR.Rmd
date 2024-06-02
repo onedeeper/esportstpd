@@ -1,0 +1,115 @@
+---
+title: "Individual analysis amateur players GSR SURROGATE"
+output: html_notebook
+---
+
+```{r}
+## load data and packages
+rm(list=ls())
+require(nonlinearTseries)
+require(tseriesChaos)
+require(crqa)
+require(Hmisc)
+require(grid)
+require(ggplot2)
+
+setwd("/Users/ymkeverduyn/Desktop/TILBURG UNIVERSITY/YEAR 1 SEM 2/COMPLEX SYSTEMS/Group project/GSR/pros/Surrogates")
+gsr_data <- read.csv(file="pro_surrogate_gsr0.csv")
+```
+
+```{r}
+## temporal dynamics and change ##
+num_players <- 5
+# Loop through each player's data
+for (i in 0:(num_players - 1)) {
+  # Extract GSR data for the current player
+  player_gsr <- gsr_data[[paste("player", i, sep = "_")]]
+
+  # Convert to a time series object
+  TS <- ts(player_gsr)
+  
+  # Plot the time series data
+  y_limits <- c(16000, 113000)
+  ts.plot(ylim=y_limits, TS, main = paste("Original GSR Time Series - Surrogate Player", i))
+}
+```
+
+```{r}
+num_players <- 5
+for (i in 0:(num_players - 1)) {
+  player_gsr <- gsr_data[[paste("player", i, sep = "_")]]
+  TS <- ts(player_gsr)
+  differences <- diff(TS)
+  ts.plot( differences, main = paste("Discrete Differences of gsr - Surrogate Player", i))
+}
+```
+
+```{r}
+num_players <- 5
+for (i in 0:(num_players - 1)) {
+  player_gsr <- gsr_data[[paste("player", i, sep = "_")]]
+  differences <- diff(player_gsr)
+  lhd <- density(differences)
+  y_limits <- c(0, 0.0055)
+  plot(ylim=y_limits, lhd, main = paste("Density of Discrete Differences in gsr - Surrogate Player", i))
+}
+```
+
+
+```{r}
+num_players <- 5
+for (i in 0:(num_players - 1)) {
+  player_gsr <- gsr_data[[paste("player", i, sep = "_")]]
+  player_data <- data.frame(gsr = player_gsr)
+  
+  # Calculate a lead and a lag and estimate velocity
+  player_data$gsr_lag1 <- Lag(player_data$gsr, 1)
+  player_data$gsr_lead1 <- Lag(player_data$gsr, -1)
+  player_data$gsr_vel <- (player_data$gsr_lead1 - player_data$gsr_lag1) / 2
+
+  # Plot change in time series
+  plot(player_data$gsr_vel, type='l', xlab = "Time", ylab = "Change in GSR",
+       main = paste("Change in gsr Time Series - Surrogate Player", i))
+}
+
+```
+
+
+```{r}
+#Attractor dynamics through regression, I did the surrogate testing on the plots but not for the linear models because p-values are all non significant
+num_players <- 5
+for (i in 0:(num_players - 1)) {
+  player_gsr <- gsr_data[[paste("player", i, sep = "_")]]
+  player_data <- data.frame(gsr = player_gsr)
+
+  # Calculate a lead and a lag and estimate velocity
+  player_data$gsr_lag1 <- Lag(player_data$gsr, 1)
+  player_data$gsr_lead1 <- Lag(player_data$gsr, -1)
+  player_data$gsr_vel <- (player_data$gsr_lead1 - player_data$gsr_lag1) / 2
+
+  # Plot change in time series
+  plot(player_data$gsr, player_data$gsr_vel, xlab = 'GSR', ylab='Change in GSR', 
+       main = paste("Attractor Dynamics of gsr - Surrogate Player", i), pch=20)
+}
+```
+
+```{r}
+num_players <- 5
+for (i in 0:(num_players - 1)) {
+  player_gsr <- gsr_data[[paste("player", i, sep = "_")]]
+  player_data <- data.frame(gsr = player_gsr, time = seq_along(player_gsr))
+
+  player_data$gsr_lag1 <- Lag(player_data$gsr, 1)
+  player_data$gsr_lead1 <- Lag(player_data$gsr, -1)
+  player_data$gsr_vel <- (player_data$gsr_lead1 - player_data$gsr_lag1) / 2
+  
+  p <- ggplot(data=player_data, aes(x=time, y=gsr)) +
+    geom_segment(aes(xend=time, yend=gsr + gsr_vel), arrow=arrow(length=unit(.2, "cm"))) +
+    stat_density2d(aes(colour=after_stat(level))) +
+    labs(title = paste("Vector Density Plot gsr - Surrogate Player", i), x= "Time Window", y = "GSR")
+  print(p)
+}
+```
+
+
+
