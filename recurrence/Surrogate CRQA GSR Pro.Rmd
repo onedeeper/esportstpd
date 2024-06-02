@@ -1,0 +1,678 @@
+---
+title: "Surrogate CRQA GSR Pros"
+output: html_document
+date: "2024-05-20"
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r results='hide', message=FALSE, warning=FALSE}
+library(crqa)
+library(readr)
+library(pracma)
+library(tseriesChaos)
+library(nonlinearTseries)
+
+```
+
+```{r}
+
+# Pro players surrogates 
+setwd('C:/Users/jette/Documents/Uni/Tilburg/Semester2/Complex Systems/Project CS/surrogates/pro_surrogates/GSR')
+
+# get the auto-RR for all the surrogates for each player 
+# store RRs 
+
+# fix the parameters as they were estimated from the actual data on Pro's gsr
+delay = 36
+embeddim = 9.2
+radius = 0.4
+
+# create RR list for each player 
+RR.list.01 <- list()
+RR.list.02 <- list()
+RR.list.03 <- list()
+RR.list.04 <- list()
+RR.list.12 <- list()
+RR.list.13 <- list()
+RR.list.14 <- list()
+RR.list.23 <- list()
+RR.list.24 <- list()
+RR.list.34 <- list()
+RR.list.all <- list()
+
+
+for (i in 0:99){
+  # read in 100 surrogate csv files (window shuffled) 
+  
+  file <- sprintf("pro_surrogate_gsr%i.csv", i)
+  Pro.surr.gsr <- read.csv(file)
+
+  # get the single players 
+  Pro0 <- Pro.surr.gsr$player_0
+  Pro1 <- Pro.surr.gsr$player_1
+  Pro2 <- Pro.surr.gsr$player_2
+  Pro3 <- Pro.surr.gsr$player_3
+  Pro4 <- Pro.surr.gsr$player_4
+  
+  all_players <- Pro.surr.gsr
+  
+  # get the RR for the whole team 
+  RQA.all <- crqa(all_players, all_players, delay = delay, embed = 2, rescale = 1, radius = radius, normalize = 0, 
+           mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE, side = 'both', method = 'mdrqa',
+           metric = 'euclidean', datatype = 'continuous')
+  
+  RRall = round(RQA.all$RR, digits = 2)
+  
+  # append the RR to the list for all players combined 
+  RR.list.all <- append(RR.list.all, RRall)
+  
+  # get the RR for each player-combination:
+  ## player 0 vs. player 1
+  RQA.p01 = crqa(ts1 = Pro0, ts2 = Pro1, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR01 = round(RQA.p01$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.01 <- append(RR.list.01, RR01)
+  
+  
+  ## player 0 vs. player 2
+  RQA.p02 = crqa(ts1 = Pro0, ts2 = Pro2, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR02 = round(RQA.p02$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.02 <- append(RR.list.02, RR02)
+  
+  
+  ## player 0 vs. player 3
+  RQA.p03 = crqa(ts1 = Pro0, ts2 = Pro3, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR03 = round(RQA.p03$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.03 <- append(RR.list.03, RR03)
+  
+  
+  ## player 0 vs. player 4
+  RQA.p04 = crqa(ts1 = Pro0, ts2 = Pro4, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR04 = round(RQA.p04$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.04 <- append(RR.list.04, RR04)
+  
+  
+  ## player 1 vs. player 2
+  RQA.p12 = crqa(ts1 = Pro1, ts2 = Pro2, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR12 = round(RQA.p12$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.12 <- append(RR.list.12, RR12)
+  
+  
+  ## player 1 vs. player 3
+  RQA.p13 = crqa(ts1 = Pro1, ts2 = Pro3, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR13 = round(RQA.p13$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.13 <- append(RR.list.13, RR13)
+  
+  
+  ## player 1 vs. player 4
+  RQA.p14 = crqa(ts1 = Pro1, ts2 = Pro4, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR14 = round(RQA.p14$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.14 <- append(RR.list.14, RR14)
+  
+  
+  ## player 2 vs. player 3
+  RQA.p23 = crqa(ts1 = Pro2, ts2 = Pro3, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR23 = round(RQA.p23$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.23 <- append(RR.list.23, RR23)
+  
+  
+  ## player 2 vs. player 4
+  RQA.p24 = crqa(ts1 = Pro2, ts2 = Pro4, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR24 = round(RQA.p24$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.24 <- append(RR.list.24, RR24)
+  
+  
+  ## player 3 vs. player 4
+  RQA.p34 = crqa(ts1 = Pro3, ts2 = Pro4, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR34 = round(RQA.p34$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.34 <- append(RR.list.34, RR34)
+
+  print(i)
+  
+}
+
+```
+
+
+```{r}
+print(length(RR.list.01))
+print(length(RR.list.02))
+print(length(RR.list.03))
+print(length(RR.list.04))
+print(length(RR.list.12))
+print(length(RR.list.13))
+print(length(RR.list.14))
+print(length(RR.list.23))
+print(length(RR.list.24))
+print(length(RR.list.34))
+print(length(RR.list.all))
+
+```
+
+```{r}
+# get 95% CI for the RR over the surrogates to compare to RR on actual data 
+
+## All players 
+# Calculate mean
+mean_all <- mean(unlist(RR.list.all))
+
+# Calculate length
+n_all <- length(unlist(RR.list.all))
+
+# Calculate standard deviation
+sd_all <- sd(unlist(RR.list.all))
+
+# Calculate Standard Error
+error_all <- qt(.975 + (1 - .975)/2, df = n_all - 1) * sd_all/sqrt(n_all)
+
+# CI
+CI_all <- c(lower = mean_all - error_all, mean = mean_all, upper = mean_all + error_all)
+print(CI_all)
+
+```
+
+
+```{r}
+
+# get 95% CI for the RR over the surrogates to compare to RR on actual data 
+
+## Player 0 vs. player 1
+# Calculate mean
+mean01 <- mean(unlist(RR.list.01))
+
+# Calculate length
+n01 <- length(unlist(RR.list.01))
+
+# Calculate standard deviation
+sd01 <- sd(unlist(RR.list.01))
+
+# Calculate Standard Error
+error01 <- qt(.975 + (1 - .975)/2, df = n01 - 1) * sd01/sqrt(n01)
+
+# CI
+CI01 <- c(lower = mean01 - error01, mean = mean01, upper = mean01 + error01)
+print(CI01)
+
+```
+
+```{r}
+
+## Player 0 vs. player 2
+# Calculate mean
+mean02 <- mean(unlist(RR.list.02))
+
+# Calculate length
+n02 <- length(unlist(RR.list.02))
+
+# Calculate standard deviation
+sd02 <- sd(unlist(RR.list.02))
+
+# Calculate Standard Error
+error02 <- qt(.975 + (1 - .975)/2, df = n02 - 1) * sd02/sqrt(n02)
+
+# CI
+CI02 <- c(lower = mean02 - error02, mean = mean02, upper = mean02 + error02)
+print(CI02)
+
+```
+
+```{r}
+
+## Player 0 vs. player 3
+# Calculate mean
+mean03 <- mean(unlist(RR.list.03))
+
+# Calculate length
+n03 <- length(unlist(RR.list.03))
+
+# Calculate standard deviation
+sd03 <- sd(unlist(RR.list.03))
+
+# Calculate Standard Error
+error03 <- qt(.975 + (1 - .975)/2, df = n03 - 1) * sd03/sqrt(n03)
+
+# CI
+CI03 <- c(lower = mean03 - error03, mean = mean03, upper = mean03 + error03)
+print(CI03)
+
+```
+
+```{r}
+
+## Player 0 vs. player 4
+# Calculate mean
+mean04 <- mean(unlist(RR.list.04))
+
+# Calculate length
+n04 <- length(unlist(RR.list.04))
+
+# Calculate standard deviation
+sd04 <- sd(unlist(RR.list.04))
+
+# Calculate Standard Error
+error04 <- qt(.975 + (1 - .975)/2, df = n04 - 1) * sd04/sqrt(n04)
+
+# CI
+CI04 <- c(lower = mean04 - error04, mean = mean04, upper = mean04 + error04)
+print(CI04)
+
+```
+
+```{r}
+
+## Player 1 vs. player 2
+# Calculate mean
+mean12 <- mean(unlist(RR.list.12))
+
+# Calculate length
+n12 <- length(unlist(RR.list.12))
+
+# Calculate standard deviation
+sd12 <- sd(unlist(RR.list.12))
+
+# Calculate Standard Error
+error12 <- qt(.975 + (1 - .975)/2, df = n12 - 1) * sd12/sqrt(n12)
+
+# CI
+CI12 <- c(lower = mean12 - error12, mean = mean12, upper = mean12 + error12)
+print(CI12)
+
+```
+
+```{r}
+
+## Player 1 vs. player 3
+# Calculate mean
+mean13 <- mean(unlist(RR.list.13))
+
+# Calculate length
+n13 <- length(unlist(RR.list.13))
+
+# Calculate standard deviation
+sd13 <- sd(unlist(RR.list.13))
+
+# Calculate Standard Error
+error13 <- qt(.975 + (1 - .975)/2, df = n13 - 1) * sd13/sqrt(n13)
+
+# CI
+CI13 <- c(lower = mean13 - error13, mean = mean13, upper = mean13 + error13)
+print(CI13)
+
+```
+
+
+```{r}
+
+## Player 1 vs. player 4
+# Calculate mean
+mean14 <- mean(unlist(RR.list.14))
+
+# Calculate length
+n14 <- length(unlist(RR.list.14))
+
+# Calculate standard deviation
+sd14 <- sd(unlist(RR.list.14))
+
+# Calculate Standard Error
+error14 <- qt(.975 + (1 - .975)/2, df = n14 - 1) * sd14/sqrt(n14)
+
+# CI
+CI14 <- c(lower = mean14 - error14, mean = mean14, upper = mean14 + error14)
+print(CI14)
+
+```
+
+
+```{r}
+
+## Player 2 vs. player 3
+# Calculate mean
+mean23 <- mean(unlist(RR.list.23))
+
+# Calculate length
+n23 <- length(unlist(RR.list.23))
+
+# Calculate standard deviation
+sd23 <- sd(unlist(RR.list.23))
+
+# Calculate Standard Error
+error23 <- qt(.975 + (1 - .975)/2, df = n23 - 1) * sd23/sqrt(n23)
+
+# CI
+CI23 <- c(lower = mean23 - error23, mean = mean23, upper = mean23 + error23)
+print(CI23)
+```
+
+```{r}
+
+## Player 2 vs. player 4 
+# Calculate mean
+mean24 <- mean(unlist(RR.list.24))
+
+# Calculate length
+n24 <- length(unlist(RR.list.24))
+
+# Calculate standard deviation
+sd24 <- sd(unlist(RR.list.24))
+
+# Calculate Standard Error
+error24 <- qt(.975 + (1 - .975)/2, df = n24 - 1) * sd24/sqrt(n24)
+
+# CI
+CI24 <- c(lower = mean24 - error24, mean = mean24, upper = mean24 + error24)
+print(CI24)
+```
+
+
+
+```{r}
+
+## Player 3 vs. player 4 
+# Calculate mean
+mean34 <- mean(unlist(RR.list.34))
+
+# Calculate length
+n34 <- length(unlist(RR.list.34))
+
+# Calculate standard deviation
+sd34 <- sd(unlist(RR.list.34))
+
+# Calculate Standard Error
+error34 <- qt(.975 + (1 - .975)/2, df = n34 - 1) * sd34/sqrt(n34)
+
+# CI
+CI34 <- c(lower = mean34 - error34, mean = mean34, upper = mean34 + error34)
+print(CI34)
+
+
+```
+
+## make a diagonal recurrence profile for each combination 
+
+```{r}
+# randomly choose gsr0 surrogate data 
+setwd('C:/Users/jette/Documents/Uni/Tilburg/Semester2/Complex Systems/Project CS/surrogates/pro_surrogates/GSR')
+Pro.surr.gsr <- read.csv("pro_surrogate_gsr0.csv")
+
+# get the single players 
+Pro0 <- Pro.surr.gsr$player_0
+Pro1 <- Pro.surr.gsr$player_1
+Pro2 <- Pro.surr.gsr$player_2
+Pro3 <- Pro.surr.gsr$player_3
+Pro4 <- Pro.surr.gsr$player_4
+
+```
+
+```{r}
+# make a diagonal recurrence profile 0 vs 1
+
+# choose an important time range for the lag around the LoS: 60 seconds
+windowsize = 60
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro0, Pro1, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "GSR Pro 0 & Pro 1 Diagonal Recurrence Profile")
+
+
+```
+
+```{r}
+# make a diagonal recurrence profile 0 vs 2
+
+# choose an important time range for the lag around the LoS: 60 seconds
+windowsize = 60
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro0, Pro2, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "GSR Pro 0 & Pro 2 Diagonal Recurrence Profile")
+
+
+```
+
+```{r}
+# make a diagonal recurrence profile 0 vs 3
+
+# choose an important time range for the lag around the LoS: 60 seconds
+windowsize = 60
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro0, Pro3, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "GSR Pro 0 & Pro 3 Diagonal Recurrence Profile")
+
+
+```
+
+```{r}
+# make a diagonal recurrence profile 0 vs 4
+
+# choose an important time range for the lag around the LoS: 60 seconds
+windowsize = 60
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro0, Pro4, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "GSR Pro 0 & Pro 4 Diagonal Recurrence Profile")
+
+
+```
+
+```{r}
+# make a diagonal recurrence profile 1 vs 2 
+
+# choose an important time range for the lag around the LoS: 60 seconds
+windowsize = 60
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro1, Pro2, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "GSR Pro 1 & Pro 2 Diagonal Recurrence Profile")
+
+
+```
+
+```{r}
+# 1 vs 3 
+# choose an important time range for the lag around the LoS: 60 seconds
+windowsize = 60
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro1, Pro3, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "GSR Pro 1 & Pro 3 Diagonal Recurrence Profile")
+
+
+```
+
+```{r}
+# 1 vs 4
+# choose an important time range for the lag around the LoS: 60 seconds
+windowsize = 60
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro1, Pro4, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "GSR Pro 1 & Pro 4 Diagonal Recurrence Profile")
+
+
+```
+
+
+```{r}
+# 2 vs 3
+# choose an important time range for the lag around the LoS: 60 seconds
+windowsize = 60
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro2, Pro3, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "GSR Pro 2 & Pro 3 Diagonal Recurrence Profile")
+
+
+```
+
+```{r}
+# 2 vs 4
+# choose an important time range for the lag around the LoS: 60 seconds
+windowsize = 60
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro2, Pro4, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "GSR Pro 2 & Pro 4 Diagonal Recurrence Profile")
+
+
+```
+
+
+```{r}
+# 3 vs 4
+# choose an important time range for the lag around the LoS: 60 seconds
+windowsize = 60
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro3, Pro4, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "GSR Pro 3 & Pro 4 Diagonal Recurrence Profile")
+
+
+```
+
+
+

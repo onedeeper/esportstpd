@@ -1,0 +1,251 @@
+---
+title: "Surrogate aRQA GSR Am"
+output: html_document
+date: "2024-05-17"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r results='hide', message=FALSE, warning=FALSE}
+library(crqa)
+library(readr)
+library(pracma)
+library(tseriesChaos)
+library(nonlinearTseries)
+
+```
+
+```{r}
+
+# Am players surrogates 
+setwd('C:/Users/jette/Documents/Uni/Tilburg/Semester2/Complex Systems/Project CS/surrogates/amateur_surrogates/GSR')
+
+# get the auto-RR for all the surrogates for each player 
+# store RRs 
+
+# fix the parameters as they were estimated from the actual data on Am's gsr
+delay = 36.4
+embeddim = 9.8
+radius = 0.4
+
+# create RR list for each player 
+RR.list.0 <- list()
+RR.list.1 <- list()
+RR.list.2 <- list()
+RR.list.3 <- list()
+RR.list.4 <- list()
+
+
+for (i in 0:99){
+  # read in 100 surrogate csv files (window shuffled) 
+  
+  file <- sprintf("amateur_surrogate_gsr%i.csv", i)
+  Am.surr.gsr <- read.csv(file)
+
+  # get the single players 
+  Am0 <- Am.surr.gsr$player_0
+  Am1 <- Am.surr.gsr$player_1
+  Am2 <- Am.surr.gsr$player_2
+  Am3 <- Am.surr.gsr$player_3
+  Am4 <- Am.surr.gsr$player_4
+  
+  # get the auto-RR for each player:
+  # player 0
+  RQA.p0 = crqa(ts1 = Am0, ts2 = Am0, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR0 = round(RQA.p0$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.0 <- append(RR.list.0, RR0)
+  
+  # player 1
+  RQA.p1 = crqa(ts1 = Am1, ts2 = Am1, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR1 = round(RQA.p1$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.1 <- append(RR.list.1, RR1)
+  
+  # player 2
+  RQA.p2 = crqa(ts1 = Am2, ts2 = Am2, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR2 = round(RQA.p2$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.2 <- append(RR.list.2, RR2)
+  
+  # player 3
+  RQA.p3 = crqa(ts1 = Am3, ts2 = Am3, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR3 = round(RQA.p3$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.3 <- append(RR.list.3, RR3)
+  
+  # player 4
+  RQA.p4 = crqa(ts1 = Am4, ts2 = Am4, delay = delay, embed = embeddim, rescale = 1, radius = radius, 
+                normalize = 0, mindiagline = 2, minvertline = 2, tw = 0, whiteline = FALSE, recpt = FALSE)
+  
+  RR4 = round(RQA.p4$RR, digits = 2)
+  
+  # append the RR to the player's list 
+  RR.list.4 <- append(RR.list.4, RR4)
+  
+  print(i)
+  
+}
+
+```
+
+
+```{r}
+print(length(RR.list.0))
+print(length(RR.list.1))
+print(length(RR.list.2))
+print(length(RR.list.3))
+print(length(RR.list.4))
+```
+
+```{r}
+
+# get 95% CI for the RR over the surrogates to compare to RR on actual data 
+
+## Player 0 
+# Calculate mean
+mean0 <- mean(unlist(RR.list.0))
+
+# Calculate length
+n0 <- length(unlist(RR.list.0))
+
+# Calculate standard deviation
+sd0 <- sd(unlist(RR.list.0))
+
+# Calculate Standard Error
+error0 <- qt(.975 + (1 - .975)/2, df = n0 - 1) * sd0/sqrt(n0)
+
+# CI
+CI0 <- c(lower = mean0 - error0, mean0 = mean0, upper = mean0 + error0)
+print(CI0)
+
+```
+
+
+```{r}
+
+## Player 1
+# Calculate mean
+mean1 <- mean(unlist(RR.list.1))
+
+# Calculate length
+n1 <- length(unlist(RR.list.1))
+
+# Calculate standard deviation
+sd1 <- sd(unlist(RR.list.1))
+
+# Calculate Standard Error
+error1 <- qt(.975 + (1 - .975)/2, df = n1 - 1) * sd1/sqrt(n1)
+
+# CI
+CI1 <- c(lower = mean1 - error1, mean1 = mean1, upper = mean1 + error1)
+print(CI1)
+
+```
+
+```{r}
+
+## Player 2
+# Calculate mean
+mean2 <- mean(unlist(RR.list.2))
+
+# Calculate length
+n2 <- length(unlist(RR.list.2))
+
+# Calculate standard deviation
+sd2 <- sd(unlist(RR.list.2))
+
+# Calculate Standard Error
+error2 <- qt(.975 + (1 - .975)/2, df = n2 - 1) * sd2/sqrt(n2)
+
+# CI
+CI2 <- c(lower = mean2 - error2, mean2 = mean2, upper = mean2 + error2)
+print(CI2)
+```
+
+```{r}
+
+## Player 3
+# Calculate mean
+mean3 <- mean(unlist(RR.list.3))
+
+# Calculate length
+n3 <- length(unlist(RR.list.3))
+
+# Calculate standard deviation
+sd3 <- sd(unlist(RR.list.3))
+
+# Calculate Standard Error
+error3 <- qt(.975 + (1 - .975)/2, df = n3 - 1) * sd3/sqrt(n3)
+
+# CI
+CI3 <- c(lower = mean3 - error3, mean3 = mean3, upper = mean3 + error3)
+print(CI3)
+
+
+```
+
+```{r}
+
+## Player 4
+# Calculate mean
+mean4 <- mean(unlist(RR.list.4))
+
+# Calculate length
+n4 <- length(unlist(RR.list.4))
+
+# Calculate standard deviation
+sd4 <- sd(unlist(RR.list.4))
+
+# Calculate Standard Error
+error4 <- qt(.975 + (1 - .975)/2, df = n4 - 1) * sd4/sqrt(n4)
+
+# CI
+CI4 <- c(lower = mean4 - error4, mean4 = mean4, upper = mean4 + error4)
+print(CI4)
+```
+
+
+```{r}
+
+# the RR values from the real data for comparison 
+Pro0.real.gsr <- 0.29
+Pro1.real.gsr <- 6.85
+Pro2.real.gsr <- 1.91
+Pro3.real.gsr <- 2.50
+Pro4.real.gsr <- 4.06
+
+Pro0.real.hrv <- 2.25
+Pro1.real.hrv <- 2.71
+Pro2.real.hrv <- 2.63
+Pro3.real.hrv <- 2.33
+Pro4.real.hrv <- 2.04
+
+Am0.real.gsr <- 3.46
+Am1.real.gsr <- 0.65
+Am2.real.gsr <- 1.75
+Am3.real.gsr <- 2.13
+Am4.real.gsr <- 2.03
+
+Am0.real.hrv <- 2.57
+Am1.real.hrv <- 2
+Am2.real.hrv <- 3.54
+Am3.real.hrv <- 2.76
+Am4.real.hrv <- 3.47
+```
+

@@ -1,0 +1,529 @@
+---
+title: "Individual RQA GSR All Pros"
+output: html_document
+date: "2024-05-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r results='hide', message=FALSE, warning=FALSE}
+library(viridis)
+library(crqa)
+library(readr)
+library(pracma)
+library(tseriesChaos)
+library(nonlinearTseries)
+
+```
+
+## RQA on GSR for Pro Players
+
+for general justification of using the crqa package for aRQA we looked at e.g.:  https://dl.acm.org/doi/fullHtml/10.1145/3576050.3576113#BibPLXBIB0009 
+
+```{r}
+
+# Pro players 
+setwd('C:/Users/jette/Documents/Uni/Tilburg/Semester2/Complex Systems/Project CS/HRV_GSR_Final/GSR/pros/match_10')
+
+Pro0 <- read.csv(file="player_0.csv")
+Pro1 <- read.csv(file="player_1.csv")
+Pro2 <- read.csv(file="player_2.csv")
+Pro3 <- read.csv(file="player_3.csv")
+Pro4 <- read.csv(file="player_4.csv")
+
+players <- list(Pro0, Pro1, Pro2, Pro3, Pro4)
+
+```
+
+
+## Parameter Estimation for each player's GSR
+
+We need the embedding dimension, the delay,and the radius: since the data is continuous we need to estimate the parameters 
+
+Following the suggestions here: 
+https://ieeexplore.ieee.org/document/9447059 
+https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2018.01679/full 
+
+Delay: AMI 
+Embedding Dimension: false-nearest-neighbors (alternative from lecture: Cao)
+Radius: should give 1-5% recurrence (according to lecture)
+
+https://ieeexplore.ieee.org/document/9447059  on radius selection: 
+3) Estimating Threshold Radius (ε): The final parameter to
+construct an appropriate RP is to select the threshold radius
+(ε). The method proposed by Zbilut et al. [23] was adopted.
+Accordingly, Rec was calculated for a range of radius between
+0.01, 0.02, . . . , 0.1, 0.2, . . . , 1, 2 . . . , 10, and for all short-term
+window sizes adopted in the study. A plot of thresholds vs
+recurrence rates was constructed using a log scale as shown
+in Figure 2. From the plot, the condition foot-after-noise
+was located by observing the point after which there was
+gradual and linear rise in the Rec. All window sizes satisfied
+the criteria, however, for the window size of 60, valid Rec
+only starts at the threshold 0.7 where a steady rise was
+observed (indicated by dashed line in the Figure 2). Thus,
+to accommodate the smallest window size of 60, a threshold
+ε of 0.7 was considered for subsequent analysis. Further, the
+corresponding Rec of 0.067 satisfied the suggested nominal
+recurrence rate of 0.01 or 1%. 
+
+
+## Player 0 
+
+```{r}
+# get AMI to select delay 
+# select a bin size using Sturges' rule (1926)
+bin = ceil(1 + log2(nrow(Pro0)))
+
+mutual(Pro0$gsr, bin, 50, plot = TRUE)
+
+```
+
+```{r}
+# choose delay 
+
+delay_0 = 10
+
+```
+
+FNN seems flawed for this kind of data: https://ieeexplore.ieee.org/document/4148166?arnumber=4148166 probably due to noise
+
+Therefore choose Cao's method for estimating the embedding dimension instead 
+```{r}
+# Cao, L. (1997). Practical method for determining the minimum embedding dimension of a scalar time series. Physica D: Nonlinear Phenomena, 110(1-2), 43-50.
+embeddim_0 = estimateEmbeddingDim(Pro0$gsr, time.lag = delay_0, max.embedding.dim = 20)
+
+```
+
+
+```{r}
+print(embeddim_0)
+
+```
+
+## Player 1
+
+```{r}
+# get AMI to select delay 
+# select a bin size using Sturges' rule (1926)
+bin = ceil(1 + log2(nrow(Pro1)))
+
+mutual(Pro1$gsr, bin, 50, plot = TRUE)
+
+```
+
+```{r}
+# choose delay 
+
+delay_1 = 41
+
+```
+
+```{r}
+# Cao, L. (1997). Practical method for determining the minimum embedding dimension of a scalar time series. Physica D: Nonlinear Phenomena, 110(1-2), 43-50.
+embeddim_1 = estimateEmbeddingDim(Pro1$gsr, time.lag = delay_1, max.embedding.dim = 20)
+
+```
+
+```{r}
+print(embeddim_1)
+
+```
+
+
+## Player 2 
+
+```{r}
+# get AMI to select delay 
+# select a bin size using Sturges' rule (1926)
+bin = ceil(1 + log2(nrow(Pro2)))
+
+mutual(Pro2$gsr, bin, 50, plot = TRUE)
+
+```
+
+```{r}
+# choose delay 
+
+delay_2 = 38
+
+```
+
+
+
+```{r}
+# Cao, L. (1997). Practical method for determining the minimum embedding dimension of a scalar time series. Physica D: Nonlinear Phenomena, 110(1-2), 43-50.
+embeddim_2 = estimateEmbeddingDim(Pro2$gsr, time.lag = delay_2, max.embedding.dim = 20)
+
+```
+
+```{r}
+print(embeddim_2)
+
+```
+
+
+## Player 3 
+
+```{r}
+# get AMI to select delay 
+# select a bin size using Sturges' rule (1926)
+bin = ceil(1 + log2(nrow(Pro3)))
+
+mutual(Pro3$gsr, bin, 50, plot = TRUE)
+
+```
+
+```{r}
+# choose delay 
+
+delay_3 = 38
+
+```
+
+
+```{r}
+# Cao, L. (1997). Practical method for determining the minimum embedding dimension of a scalar time series. Physica D: Nonlinear Phenomena, 110(1-2), 43-50.
+embeddim_3 = estimateEmbeddingDim(Pro3$gsr, time.lag = delay_3, max.embedding.dim = 20)
+
+```
+
+```{r}
+print(embeddim_3)
+
+```
+
+
+## Player 4 
+
+```{r}
+# get AMI to select delay 
+# select a bin size using Sturges' rule (1926)
+bin = ceil(1 + log2(nrow(Pro4)))
+
+mutual(Pro4$gsr, bin, 50, plot = TRUE)
+
+```
+
+```{r}
+# choose delay 
+
+delay_4 = 43
+
+```
+
+
+
+```{r}
+# Cao, L. (1997). Practical method for determining the minimum embedding dimension of a scalar time series. Physica D: Nonlinear Phenomena, 110(1-2), 43-50.
+embeddim_4 = estimateEmbeddingDim(Pro4$gsr, time.lag = delay_4, max.embedding.dim = 20)
+
+```
+
+```{r}
+print(embeddim_4)
+
+```
+
+### Choose one set of parameters for all players 
+Players 1 - 4 are pretty similar in terms of their estimated delays and embeddims 
+Player 0 falls out of the scheme a little -- choose a value somewhat above the average according to Wallot & Leonardi (2018)
+```{r}
+
+delay = mean(c(delay_0, delay_1, delay_2, delay_3, delay_4)) + 2
+embeddim =  mean(c(embeddim_0, embeddim_1, embeddim_2, embeddim_3, embeddim_4)) + 2
+
+print(delay)
+print(embeddim)
+
+```
+Start with an arbitrary radius of 0.3 -- 0.4 as a compromise between player 0 (still below 1% RR) & 1 (a little above 5% RR)
+
+```{r}
+radius = 0.4
+```
+
+## Get the RQA plots
+Fill in the estimated embedding dimension and lag - radius should be chosen so that the RR is around 1-5% 
+According to e.g. Wallot & Leonardi (2018) a single set of parameters that fits all samples should be found in order to properly compare between all of them. 
+
+### Player 0 
+
+```{r, fig.width = 16, fig.height = 10}
+
+# do cRQA on the ts itself and thereby do aRQA
+RQA.p0 = crqa(ts1 = Pro0$gsr,
+               ts2 = Pro0$gsr,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p0[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p0$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Seconds", 
+       labely = "Time in Seconds", 
+       labelmain = "GSR Pro 0 aRQA",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+### Player 1
+
+```{r, fig.width = 16, fig.height = 10}
+
+# do cRQA on the ts itself and thereby do aRQA
+RQA.p1 = crqa(ts1 = Pro1$gsr,
+               ts2 = Pro1$gsr,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p1[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p1$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Seconds", 
+       labely = "Time in Seconds", 
+       labelmain = "GSR Pro 1 aRQA",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+### Player 2
+
+```{r, fig.width = 16, fig.height = 10}
+
+# do cRQA on the ts itself and thereby do aRQA
+RQA.p2 = crqa(ts1 = Pro2$gsr,
+               ts2 = Pro2$gsr,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p2[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p2$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Seconds", 
+       labely = "Time in Seconds", 
+       labelmain = "GSR Pro 2 aRQA",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+
+### Player 3
+
+```{r, fig.width = 16, fig.height = 10}
+
+# do cRQA on the ts itself and thereby do aRQA
+RQA.p3 = crqa(ts1 = Pro3$gsr,
+               ts2 = Pro3$gsr,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p3[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p3$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Seconds", 
+       labely = "Time in Seconds", 
+       labelmain = "GSR Pro 3 aRQA",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+### Player 4
+
+```{r, fig.width = 16, fig.height = 10}
+
+# do cRQA on the ts itself and thereby do aRQA
+RQA.p4 = crqa(ts1 = Pro4$gsr,
+               ts2 = Pro4$gsr,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p4[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p4$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Seconds", 
+       labely = "Time in Seconds", 
+       labelmain = "GSR Pro 4 aRQA",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+
+

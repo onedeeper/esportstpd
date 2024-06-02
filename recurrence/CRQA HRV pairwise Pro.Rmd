@@ -1,0 +1,1068 @@
+---
+title: "CRQA HRV pairwise Pro"
+output: html_document
+date: "2024-05-02"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r results='hide', message=FALSE, warning=FALSE}
+library(viridis)
+library(crqa)
+library(readr)
+library(pracma)
+library(tseriesChaos)
+library(nonlinearTseries)
+
+```
+
+## RQA on HRV for Pro Players
+
+for general justification of using the crqa package for aRQA we looked at e.g.:  https://dl.acm.org/doi/fullHtml/10.1145/3576050.3576113#BibPLXBIB0009 
+
+```{r}
+
+# Pro players 
+setwd('C:/Users/jette/Documents/Uni/Tilburg/Semester2/Complex Systems/Project CS/HRV_GSR_Final/HRV/pros/match_10')
+
+Pro0 <- read.csv(file="match_10_player_0.csv")
+Pro1 <- read.csv(file="match_10_player_1.csv")
+Pro2 <- read.csv(file="match_10_player_2.csv")
+Pro3 <- read.csv(file="match_10_player_3.csv")
+Pro4 <- read.csv(file="match_10_player_4.csv")
+
+players <- list(Pro0, Pro1, Pro2, Pro3, Pro4)
+
+```
+
+
+## Parameter Estimation for each player's HRV
+
+We need the embedding dimension, the delay,and the radius: since the data is continuous we need to estimate the parameters 
+
+Following the suggestions here: 
+https://ieeexplore.ieee.org/document/9447059 
+https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2018.01679/full 
+
+Delay: AMI 
+Embedding Dimension: false-nearest-neighbors (alternative from lecture: Cao)
+Radius: should give 1-5% recurrence (according to lecture)
+
+https://ieeexplore.ieee.org/document/9447059  on radius selection: 
+3) Estimating Threshold Radius (ε): The final parameter to
+construct an appropriate RP is to select the threshold radius
+(ε). The method proposed by Zbilut et al. [23] was adopted.
+Accordingly, Rec was calculated for a range of radius between
+0.01, 0.02, . . . , 0.1, 0.2, . . . , 1, 2 . . . , 10, and for all short-term
+window sizes adopted in the study. A plot of thresholds vs
+recurrence rates was constructed using a log scale as shown
+in Figure 2. From the plot, the condition foot-after-noise
+was located by observing the point after which there was
+gradual and linear rise in the Rec. All window sizes satisfied
+the criteria, however, for the window size of 60, valid Rec
+only starts at the threshold 0.7 where a steady rise was
+observed (indicated by dashed line in the Figure 2). Thus,
+to accommodate the smallest window size of 60, a threshold
+ε of 0.7 was considered for subsequent analysis. Further, the
+corresponding Rec of 0.067 satisfied the suggested nominal
+recurrence rate of 0.01 or 1%. 
+
+
+
+## Player 0 
+
+```{r}
+# get AMI to select delay 
+# select a bin size using Sturges' rule (1926)
+bin = ceil(1 + log2(nrow(Pro0)))
+
+mutual(Pro0$RMSSD, bin, 50, plot = TRUE)
+
+```
+
+```{r}
+# choose delay 
+
+delay_0 = 1
+
+```
+
+
+FNN seems flawed for this kind of data: https://ieeexplore.ieee.org/document/4148166?arnumber=4148166 probably due to noise
+
+Therefore choose Cao's method for estimating the embedding dimension instead 
+
+```{r}
+# Cao, L. (1997). Practical method for determining the minimum embedding dimension of a scalar time series. Physica D: Nonlinear Phenomena, 110(1-2), 43-50.
+embeddim_0 = estimateEmbeddingDim(Pro0$RMSSD, time.lag = delay_0, max.embedding.dim = 20)
+
+```
+
+
+```{r}
+print(embeddim_0)
+
+```
+
+## Player 1
+
+```{r}
+# get AMI to select delay 
+# select a bin size using Sturges' rule (1926)
+bin = ceil(1 + log2(nrow(Pro1)))
+
+mutual(Pro1$RMSSD, bin, 50, plot = TRUE)
+
+```
+
+```{r}
+# choose delay 
+
+delay_1 = 2
+
+```
+
+```{r}
+# Cao, L. (1997). Practical method for determining the minimum embedding dimension of a scalar time series. Physica D: Nonlinear Phenomena, 110(1-2), 43-50.
+embeddim_1 = estimateEmbeddingDim(Pro1$RMSSD, time.lag = delay_1, max.embedding.dim = 20)
+
+```
+
+```{r}
+print(embeddim_1)
+
+```
+
+
+## Player 2 
+
+```{r}
+# get AMI to select delay 
+# select a bin size using Sturges' rule (1926)
+bin = ceil(1 + log2(nrow(Pro2)))
+
+mutual(Pro2$RMSSD, bin, 50, plot = TRUE)
+
+```
+
+```{r}
+# choose delay 
+
+delay_2 = 2
+
+```
+
+```{r}
+# Cao, L. (1997). Practical method for determining the minimum embedding dimension of a scalar time series. Physica D: Nonlinear Phenomena, 110(1-2), 43-50.
+embeddim_2 = estimateEmbeddingDim(Pro2$RMSSD, time.lag = delay_2, max.embedding.dim = 20)
+
+```
+
+```{r}
+print(embeddim_2)
+
+```
+
+
+## Player 3 
+
+```{r}
+# get AMI to select delay 
+# select a bin size using Sturges' rule (1926)
+bin = ceil(1 + log2(nrow(Pro3)))
+
+mutual(Pro3$RMSSD, bin, 50, plot = TRUE)
+
+```
+
+```{r}
+# choose delay 
+
+delay_3 = 1
+
+```
+
+
+```{r}
+# Cao, L. (1997). Practical method for determining the minimum embedding dimension of a scalar time series. Physica D: Nonlinear Phenomena, 110(1-2), 43-50.
+embeddim_3 = estimateEmbeddingDim(Pro3$RMSSD, time.lag = delay_3, max.embedding.dim = 20)
+
+```
+
+```{r}
+print(embeddim_3)
+
+```
+
+
+## Player 4 
+
+```{r}
+# get AMI to select delay 
+# select a bin size using Sturges' rule (1926)
+bin = ceil(1 + log2(nrow(Pro4)))
+
+mutual(Pro4$RMSSD, bin, 50, plot = TRUE)
+
+```
+
+```{r}
+# choose delay 
+
+delay_4 = 1
+
+```
+
+```{r}
+# Cao, L. (1997). Practical method for determining the minimum embedding dimension of a scalar time series. Physica D: Nonlinear Phenomena, 110(1-2), 43-50.
+embeddim_4 = estimateEmbeddingDim(Pro4$RMSSD, time.lag = delay_4, max.embedding.dim = 20)
+
+```
+
+```{r}
+print(embeddim_4)
+
+```
+
+### Choose one set of parameters for all players 
+Players 0 - 4 are all pretty similar in terms of their estimated delays and embeddims 
+simply take their mean as parameters
+
+```{r}
+
+delay = mean(c(delay_0, delay_1, delay_2, delay_3, delay_4)) 
+embeddim =  mean(c(embeddim_0, embeddim_1, embeddim_2, embeddim_3, embeddim_4)) 
+
+print(delay)
+print(embeddim)
+
+```
+Start with an arbitrary radius of 0.3 -- too low, put up to 0.4
+
+```{r}
+radius = 0.4
+```
+
+## Get the RQA plots
+Fill in the estimated embedding dimension and lag - radius should be chosen so that the RR is around 1-5% 
+Try different radii between 0.01 & 10 !!! 
+According to e.g. Wallot & Leonardi (2018) a single set of parameters that fits all samples should be found in order to properly compare between all of them. 
+
+### Player 0 vs. 1
+
+```{r, fig.width = 16, fig.height = 10}
+
+
+RQA.p01 = crqa(ts1 = Pro0$RMSSD,
+               ts2 = Pro1$RMSSD,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p01[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p01$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Windows of 15 sec", 
+       labely = "Time in Windows of 15 sec", 
+       labelmain = "HRV Pro 0 & Pro 1 CRP",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+```{r}
+# make a diagonal recurrence profile 
+
+# choose an important time range for the lag around the LoS: 120 seconds (divided by 15 = 8)
+windowsize = 8
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro0$RMSSD, Pro1$RMSSD, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "HRV Pro 0 & Pro 1 Diagonal Recurrence Profile")
+
+
+```
+
+
+### Player 0 vs. Player 2 
+
+```{r, fig.width = 16, fig.height = 10}
+
+# do cRQA on the ts itself and thereby do aRQA
+RQA.p02 = crqa(ts1 = Pro0$RMSSD,
+               ts2 = Pro2$RMSSD,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p02[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p02$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Windows of 15 sec", 
+       labely = "Time in Windows of 15 sec", 
+       labelmain = "HRV Pro 0 & Pro 2 CRP",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+```{r}
+# make a diagonal recurrence profile 
+
+# choose an important time range for the lag around the LoS: 120 seconds (divided by 15 = 8)
+windowsize = 8
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro0$RMSSD, Pro2$RMSSD, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "HRV Pro 0 & Pro 2 Diagonal Recurrence Profile")
+
+
+```
+
+### Player 0 vs. Player 3
+
+```{r, fig.width = 16, fig.height = 10}
+
+# do cRQA on the ts itself and thereby do aRQA
+RQA.p03 = crqa(ts1 = Pro0$RMSSD,
+               ts2 = Pro3$RMSSD,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p03[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p03$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Windows of 15 sec", 
+       labely = "Time in Windows of 15 sec", 
+       labelmain = "HRV Pro 0 & Pro 3 CRP",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+```{r}
+# make a diagonal recurrence profile 
+
+# choose an important time range for the lag around the LoS: 120 seconds (divided by 15 = 8)
+windowsize = 8
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro0$RMSSD, Pro3$RMSSD, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "HRV Pro 0 & Pro 3 Diagonal Recurrence Profile")
+
+
+```
+
+### Player 0 vs. Player 4
+
+```{r, fig.width = 16, fig.height = 10}
+
+# do cRQA on the ts itself and thereby do aRQA
+RQA.p04 = crqa(ts1 = Pro0$RMSSD,
+               ts2 = Pro4$RMSSD,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p04[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p04$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Windows of 15 sec", 
+       labely = "Time in Windows of 15 sec", 
+       labelmain = "HRV Pro 0 & Pro 4 CRP",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+```{r}
+# make a diagonal recurrence profile 
+
+# choose an important time range for the lag around the LoS: 120 seconds (divided by 15 = 8)
+windowsize = 8
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro0$RMSSD, Pro4$RMSSD, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "HRV Pro 0 & Pro 4 Diagonal Recurrence Profile")
+
+
+```
+
+### Player 1 vs. Player 2 
+
+```{r, fig.width = 16, fig.height = 10}
+
+# do cRQA on the ts itself and thereby do aRQA
+RQA.p12 = crqa(ts1 = Pro1$RMSSD,
+               ts2 = Pro2$RMSSD,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p12[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p12$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Windows of 15 sec", 
+       labely = "Time in Windows of 15 sec", 
+       labelmain = "HRV Pro 1 & Pro 2 CRP",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+```{r}
+# make a diagonal recurrence profile 
+
+# choose an important time range for the lag around the LoS: 120 seconds (divided by 15 = 8)
+windowsize = 8
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro1$RMSSD, Pro2$RMSSD, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "HRV Pro 1 & Pro 2 Diagonal Recurrence Profile")
+
+
+```
+
+### Player 1 vs. Player 3
+
+```{r, fig.width = 16, fig.height = 10}
+
+# do cRQA on the ts itself and thereby do aRQA
+RQA.p13 = crqa(ts1 = Pro1$RMSSD,
+               ts2 = Pro3$RMSSD,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p13[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p13$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Windows of 15 sec", 
+       labely = "Time in Windows of 15 sec", 
+       labelmain = "HRV Pro 1 & Pro 3 CRP",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+```{r}
+# make a diagonal recurrence profile 
+
+# choose an important time range for the lag around the LoS: 120 seconds (divided by 15 = 8)
+windowsize = 8
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro1$RMSSD, Pro3$RMSSD, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "HRV Pro 1 & Pro 3 Diagonal Recurrence Profile")
+
+
+```
+
+### Player 1 vs. Player 4
+
+```{r, fig.width = 16, fig.height = 10}
+
+RQA.p14 = crqa(ts1 = Pro1$RMSSD,
+               ts2 = Pro4$RMSSD,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p14[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p14$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Windows of 15 sec", 
+       labely = "Time in Windows of 15 sec", 
+       labelmain = "HRV Pro 1 & Pro 4 CRP",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+```{r}
+# make a diagonal recurrence profile 
+
+# choose an important time range for the lag around the LoS: 120 seconds (divided by 15 = 8)
+windowsize = 8
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro1$RMSSD, Pro4$RMSSD, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "HRV Pro 1 & Pro 4 Diagonal Recurrence Profile")
+
+
+```
+
+### Player 2 vs. Player 3 
+
+```{r, fig.width = 16, fig.height = 10}
+
+RQA.p23 = crqa(ts1 = Pro2$RMSSD,
+               ts2 = Pro3$RMSSD,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p23[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p23$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Windows of 15 sec", 
+       labely = "Time in Windows of 15 sec", 
+       labelmain = "HRV Pro 2 & Pro 3 CRP",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+```{r}
+# make a diagonal recurrence profile 
+
+# choose an important time range for the lag around the LoS: 120 seconds (divided by 15 = 8)
+windowsize = 8
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro2$RMSSD, Pro3$RMSSD, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "HRV Pro 2 & Pro 3 Diagonal Recurrence Profile")
+
+
+```
+
+
+### Player 2 vs. Player 4
+
+```{r, fig.width = 16, fig.height = 10}
+
+RQA.p24 = crqa(ts1 = Pro2$RMSSD,
+               ts2 = Pro4$RMSSD,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p24[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p24$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Windows of 15 sec", 
+       labely = "Time in Windows of 15 sec", 
+       labelmain = "HRV Pro 2 & Pro 4 CRP",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+```{r}
+# make a diagonal recurrence profile 
+
+# choose an important time range for the lag around the LoS: 120 seconds (divided by 15 = 8)
+windowsize = 8
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro2$RMSSD, Pro4$RMSSD, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "HRV Pro 2 & Pro 4 Diagonal Recurrence Profile")
+
+
+```
+
+### Player 3 vs. Player 4
+
+```{r, fig.width = 16, fig.height = 10}
+
+RQA.p34 = crqa(ts1 = Pro3$RMSSD,
+               ts2 = Pro4$RMSSD,
+               delay = delay,
+               embed = embeddim,
+               rescale = 1,
+               radius = radius,
+               normalize = 0,
+               mindiagline = 2,
+               minvertline = 2,
+               tw = 0,
+               whiteline = FALSE,
+               recpt = FALSE)
+
+round(unlist(RQA.p34[1:9]), digit = 2)
+
+
+```
+
+RR: The percentage of recurrent points falling within the specified radius (range between 0 and 100)
+DET: Proportion of recurrent points forming diagonal line structures.
+NRLINE: The total number of lines in the recurrent plot
+maxL: The length of the longest diagonal line segment in the plot, excluding the main diagonal
+L: The average length of line structures
+ENTR: Shannon information entropy of diagonal line lengths longer than the minimum length
+rENTR: Entropy measure normalized by the number of lines observed in the plot. Handy to compare across contexts and conditions
+LAM: Proportion of recurrent points forming vertical line structures
+TT: The average length of vertical line structures
+
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+ARP = RQA.p34$RP
+ARP = matrix(as.numeric(ARP), nrow(ARP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(ARP, 
+       labelx = "Time in Windows of 15 sec", 
+       labely = "Time in Windows of 15 sec", 
+       labelmain = "HRV Pro 3 & Pro 4 CRP",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
+
+```{r}
+# make a diagonal recurrence profile 
+
+# choose an important time range for the lag around the LoS: 120 seconds (divided by 15 = 8)
+windowsize = 8
+
+rescale =  1; 
+normalize = 0; 
+minvertline = 2; 
+mindiagline = 2; 
+whiteline = FALSE;
+recpt = FALSE; 
+tw = 0
+
+res = drpfromts(Pro3$RMSSD, Pro4$RMSSD, windowsize, radius, delay, embeddim, rescale, normalize, mindiagline, minvertline, tw, whiteline, recpt, side = 'both', method = 'crqa', metric = 'euclidean', datatype = 'continuous')
+
+profile = res$profile
+
+plot(-windowsize:windowsize, profile, type = "l", lwd = 5, xlab = "Lags around Line of Synchrony", ylab = "%REC", main = "HRV Pro 3 & Pro 4 Diagonal Recurrence Profile")
+
+
+```
+
+## Get the MdRQA for all five players 
+following the instructions in the paper we can embed the five-dimensional time series once at the estimated average delay we selected above to get a 10-dimensional phase space that is quite well in line with the embedding dimensions we estimated before (slightly higher embedding dim according to Wallot and Leonardi 2018 okay) 
+```{r}
+  
+delay = delay; embed = 2; rescale = 1; radius = radius;
+normalize = 0; mindiagline = 2; minvertline = 2;
+tw = 0; whiteline = FALSE; recpt = FALSE; side = "both"
+method = 'mdcrqa'; metric = 'euclidean';  
+datatype = "continuous"
+
+all_players <- as.matrix(cbind(Pro0$RMSSD, Pro1$RMSSD, Pro2$RMSSD, Pro3$RMSSD, Pro4$RMSSD))
+
+mdrqa5_results <- crqa(all_players, all_players, delay, embed, rescale, radius, normalize, 
+           mindiagline, minvertline, tw, whiteline, recpt, side, method,
+           metric, datatype)
+
+round(unlist(mdrqa5_results[1:9]), digit = 2)
+```
+
+```{r}
+# safe and convert into numeric matrix for plotting 
+MdRP = mdrqa5_results$RP
+MdRP = matrix(as.numeric(MdRP), nrow(MdRP))
+```
+
+
+```{r, fig.width = 16, fig.height = 10}
+# use the standard plotting function
+plotRP(MdRP, 
+       labelx = "Time in Windows of 15 sec", 
+       labely = "Time in Windows of 15 sec", 
+       labelmain = "HRV all Pros",
+       cols = viridis(50), 
+       pcex = 0.75,
+       pch = 20,
+       show_ticks = TRUE, 
+       unit = 250)
+
+```
